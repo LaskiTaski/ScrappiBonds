@@ -51,7 +51,6 @@ def insert_change_into_table(information_bonds):
                                                 Market=?, Nominal=?, Frequency=?, Date=?, Days=?, ISIN=?,
                                                 Code=?, Qualification=? WHERE URL=?"""
             data_tuple = tuple(information_bonds[1::]) + (url,)
-            print('UPDATE----------UPDATE----------UPDATE----------UPDATE----------UPDATE----------UPDATE----------UPDATE')
         else:
             sqlite_insert_change_with_param = """INSERT INTO All_Bonds
                                   (URL, NAME, Quoting, Repayment, 
@@ -60,7 +59,6 @@ def insert_change_into_table(information_bonds):
                                   Code, Qualification)
                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"""
             data_tuple = tuple(information_bonds)
-            print('INSERT----------INSERT----------INSERT----------INSERT----------INSERT----------INSERT----------INSERT')
 
         cursor.execute(sqlite_insert_change_with_param, data_tuple)
         sqlite_connection.commit()

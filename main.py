@@ -71,11 +71,5 @@ if __name__ == '__main__':
     create_table_all_bonds()
     while True:
         asyncio.run(main())
-        print('SLEEP================SLEEP================SLEEP================SLEEP================SLEEP================SLEEP================SLEEP')
-        print('SLEEP================SLEEP================SLEEP================SLEEP================SLEEP================SLEEP================SLEEP')
-        print('SLEEP================SLEEP================SLEEP================SLEEP================SLEEP================SLEEP================SLEEP')
-        print('SLEEP================SLEEP================SLEEP================SLEEP================SLEEP================SLEEP================SLEEP')
-        print('SLEEP================SLEEP================SLEEP================SLEEP================SLEEP================SLEEP================SLEEP')
-        print('SLEEP================SLEEP================SLEEP================SLEEP================SLEEP================SLEEP================SLEEP')
         time.sleep(600)
 
