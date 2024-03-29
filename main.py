@@ -72,8 +72,6 @@ async def main():
 if __name__ == '__main__':
     create_db()
     create_table_all_bonds()
-    CT_User_Information()
-    CT_User_settings()
     while True:
         asyncio.run(main())
         time.sleep(1200)
