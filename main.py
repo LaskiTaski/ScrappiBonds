@@ -9,7 +9,7 @@ import datetime
 
 async def fetch_data(link, session):
     async with session.get(link) as response:
-        time.sleep(0.5)
+        time.sleep(0.1)
         soup = BeautifulSoup(await response.text(), 'lxml')
         info = soup.find_all('div', class_='quotes-simple-table__item')
 
