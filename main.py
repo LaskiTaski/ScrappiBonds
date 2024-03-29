@@ -9,6 +9,7 @@ import datetime
 
 async def fetch_data(link, session):
     async with session.get(link) as response:
+        time.sleep(0.5)
         soup = BeautifulSoup(await response.text(), 'lxml')
         info = soup.find_all('div', class_='quotes-simple-table__item')
 
@@ -39,11 +40,13 @@ async def fetch_data(link, session):
         paper_code = information_dict['Код бумаги']  # Код бумаги
         only_for_quals = information_dict['Только для квалов?']  # Только для квалов?
 
+        current_datetime = datetime.datetime.now()
+        TIME_DATE = current_datetime.strftime("%d.%m.%Y %H:%M")
+
         information_bonds = [link, name_bond, bond_quotation, bond_yield,
                              coupon_yield_market, coupon_yield_nominal,
                              coupon_frequency, repayment_date, days_to_maturity,
-                             isin, paper_code, only_for_quals]
-
+                             isin, paper_code, only_for_quals, TIME_DATE]
         insert_change_into_table(information_bonds)
 
 
@@ -71,5 +74,5 @@ if __name__ == '__main__':
     create_table_all_bonds()
     while True:
         asyncio.run(main())
-        time.sleep(600)
+        time.sleep(1200)
 

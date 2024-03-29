@@ -24,7 +24,8 @@ def create_table_all_bonds():
                                     Days INTEGER,
                                     ISIN TEXT,
                                     Code TEXT,
-                                    Qualification TEXT
+                                    Qualification TEXT,
+                                    TIME_DATE TEXT
                                     );'''
 
         cursor = sqlite_connection.cursor()
@@ -49,15 +50,15 @@ def insert_change_into_table(information_bonds):
         if result:
             sqlite_insert_change_with_param = """UPDATE All_Bonds SET NAME=?, Quoting=?, Repayment=?, 
                                                 Market=?, Nominal=?, Frequency=?, Date=?, Days=?, ISIN=?,
-                                                Code=?, Qualification=? WHERE URL=?"""
+                                                Code=?, Qualification=?, TIME_DATE=? WHERE URL=?"""
             data_tuple = tuple(information_bonds[1::]) + (url,)
         else:
             sqlite_insert_change_with_param = """INSERT INTO All_Bonds
                                   (URL, NAME, Quoting, Repayment, 
                                   Market, Nominal, 
                                   Frequency, Date, Days, ISIN, 
-                                  Code, Qualification)
-                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"""
+                                  Code, Qualification, TIME_DATE)
+                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"""
             data_tuple = tuple(information_bonds)
 
         cursor.execute(sqlite_insert_change_with_param, data_tuple)
