@@ -2,7 +2,7 @@ import time
 
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
-from db_bonds import create_db, create_table_all_bonds, insert_change_into_table
+from db_bonds import create_db, create_table_all_bonds, insert_change_into_table, CT_User_settings, CT_User_Information
 import asyncio
 import aiohttp
 import datetime
@@ -72,6 +72,8 @@ async def main():
 if __name__ == '__main__':
     create_db()
     create_table_all_bonds()
+    CT_User_Information()
+    CT_User_settings()
     while True:
         asyncio.run(main())
         time.sleep(1200)
