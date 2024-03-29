@@ -4,9 +4,10 @@ from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 from db_bonds import create_db, create_table_all_bonds, insert_change_into_table
 import asyncio
+from asyncio import Semaphore
 import aiohttp
 import datetime
-from asyncio import Semaphore
+
 
 async def fetch_data(link, session, semaphore):
     async with semaphore:
