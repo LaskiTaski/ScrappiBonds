@@ -30,7 +30,7 @@ async def fetch_data(link, session):
         coupon_yield_nominal = float(coupon_yield_nominal[:-1]) if coupon_yield_nominal[:-1] else None
 
         coupon_frequency = information_dict['Частота купона, раз в год']  # Частота купона
-        coupon_frequency = int(float(coupon_frequency)) if coupon_frequency else None
+        coupon_frequency = round(float(coupon_frequency)) if coupon_frequency else None
 
         repayment_date = information_dict['Дата погашения']  # Дата погашения
         repayment_date = datetime.datetime.strptime(repayment_date, '%d-%m-%Y').date()  # Перевод в дату
