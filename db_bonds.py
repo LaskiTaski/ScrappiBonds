@@ -1,8 +1,13 @@
+from dotenv import load_dotenv
 import sqlite3
+import os
 
+load_dotenv()
+
+ABSOLUTE_PATH = os.getenv('ABSOLUTE_PATH')
 def create_db():
     try:
-        sqlite_connection = sqlite3.connect('SMART-Bonds.db')
+        sqlite_connection = sqlite3.connect(ABSOLUTE_PATH)
     except sqlite3.Error as error:
         print("Ошибка в CREATE_DB", error)
     finally:
@@ -11,7 +16,7 @@ def create_db():
 
 def create_table_all_bonds():
     try:
-        sqlite_connection = sqlite3.connect('SMART-Bonds.db')
+        sqlite_connection = sqlite3.connect(ABSOLUTE_PATH)
         sqlite_create_table_query = '''CREATE TABLE IF NOT EXISTS All_Bonds (
                                     URL TEXT UNIQUE,
                                     NAME TEXT,
@@ -40,7 +45,7 @@ def create_table_all_bonds():
 
 def insert_change_into_table(information_bonds):
     try:
-        sqlite_connection = sqlite3.connect('SMART-Bonds.db')
+        sqlite_connection = sqlite3.connect(ABSOLUTE_PATH)
         cursor = sqlite_connection.cursor()
 
         url = information_bonds[0]
