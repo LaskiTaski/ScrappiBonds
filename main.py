@@ -40,7 +40,7 @@ async def fetch_data(link, session, semaphore):
             paper_code = information_dict['Код бумаги']  # Код бумаги
             only_for_quals = information_dict['Только для квалов?']  # Только для квалов?
 
-            current_datetime = datetime.datetime.now() + datetime.timedelta(hours=3)
+            current_datetime = datetime.datetime.now()
             TIME_DATE = current_datetime.strftime("%d.%m.%Y %H:%M")
 
             information_bonds = [link, name_bond, bond_quotation, bond_yield,
