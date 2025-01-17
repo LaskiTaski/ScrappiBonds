@@ -9,7 +9,7 @@ from data_validation import safe_int, safe_float, safe_date, calculate_days_to_m
 from models import create_tables
 from db_manager import insert_change_table
 
-x = 0
+
 def generic_urls():
     urls = [f'https://smart-lab.ru/q/bonds/order_by_val_to_day/desc/page{pagen}/' for pagen in range(1, 19)]
     urls.extend(['https://smart-lab.ru/q/ofz/'])
@@ -46,9 +46,6 @@ def parse_bond_data(soup, url):
 
 
 async def fetch_data(link, session, semaphore):
-    global x
-    x += 1
-    print(x)
     async with semaphore:
         try:
             async with session.get(link) as response:
