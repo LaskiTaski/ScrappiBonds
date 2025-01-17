@@ -1,79 +1,95 @@
-from bs4 import BeautifulSoup
-from fake_useragent import UserAgent
-from db_bonds import create_db, create_table_all_bonds, insert_change_into_table
 import asyncio
-from asyncio import Semaphore
 import aiohttp
 import datetime
+from bs4 import BeautifulSoup
+from fake_useragent import UserAgent
+from time import sleep
 
+from data_validation import safe_int, safe_float, safe_date, calculate_days_to_maturity
+from models import create_tables
+from db_manager import insert_change_table
 
-async def fetch_data(link, session, semaphore):
-    async with semaphore:
-        async with session.get(link) as response:
-            soup = BeautifulSoup(await response.text(), 'lxml')
-            info = soup.find_all('div', class_='quotes-simple-table__item')
-
-            information_dict = {info[x].text.strip(): info[x + 1].text.strip() for x in range(0, len(info), 2)}
-
-            name_bond = information_dict['Название']
-
-            bond_quotation = information_dict['Котировка облигации, %']  # Котировка облигации
-            bond_quotation = float(bond_quotation[:-1]) if bond_quotation[:-1] else None
-
-            bond_yield = information_dict['Доходность*']  # Доходность к погашению
-            bond_yield = float(bond_yield[:-1]) if bond_yield[:-1] else None
-
-            coupon_yield_market = information_dict['Текущая доходность купона']  # Доходность купона от рыночной цены
-            coupon_yield_market = float(coupon_yield_market[:-1]) if coupon_yield_market[:-1] else None
-
-            coupon_yield_nominal = information_dict['Доходность купона от номинала']  # Доходность купона от номинальной цены
-            coupon_yield_nominal = float(coupon_yield_nominal[:-1]) if coupon_yield_nominal[:-1] else None
-
-            coupon_frequency = information_dict['Частота купона, раз в год']  # Частота купона
-            coupon_frequency = round(float(coupon_frequency)) if coupon_frequency else None
-
-            repayment_date = information_dict['Дата погашения']  # Дата погашения
-            repayment_date = datetime.datetime.strptime(repayment_date, '%d-%m-%Y').date()  # Перевод в дату
-            days_to_maturity = (repayment_date - datetime.date.today()).days  # Дней до погашения
-
-            isin = information_dict['ISIN']  # ISIN
-            paper_code = information_dict['Код бумаги']  # Код бумаги
-            only_for_quals = information_dict['Только для квалов?']  # Только для квалов?
-
-            current_datetime = datetime.datetime.now()
-            TIME_DATE = current_datetime.strftime("%d.%m.%Y %H:%M")
-
-            information_bonds = [link, name_bond, bond_quotation, bond_yield,
-                                 coupon_yield_market, coupon_yield_nominal,
-                                 coupon_frequency, repayment_date, days_to_maturity,
-                                 isin, paper_code, only_for_quals, TIME_DATE]
-            insert_change_into_table(information_bonds)
-
-
-async def main():
-    semaphore = Semaphore(5)
-
-    ua = UserAgent()
-    fake_user = {'user-agent': ua.random}
-
+x = 0
+def generic_urls():
     urls = [f'https://smart-lab.ru/q/bonds/order_by_val_to_day/desc/page{pagen}/' for pagen in range(1, 19)]
     urls.extend(['https://smart-lab.ru/q/ofz/'])
     urls.extend(['https://smart-lab.ru/q/subfed/'])
+    return urls
+
+
+def parse_bond_data(soup, url):
+    try:
+        info = {
+            item.text.strip(): item.find_next_sibling().text.strip()
+            for item in soup.select('.quotes-simple-table__item') if item.find_next_sibling()
+        }
+
+        return {
+            "url": url,
+            "name": info.get("Название", "N/A"),
+            "quoting": safe_float(info.get("Котировка облигации, %")),
+            "repayment": safe_float(info.get("Доходность*")),
+            "market": safe_float(info.get("Текущ. дох. купона")),
+            "nominal": safe_float(info.get("Ставка купона")),
+            "frequency": safe_int(info.get("Частота купона, раз в год")),
+            "date": safe_date(info.get("Дата погашения")),
+            "days": calculate_days_to_maturity(safe_date(info.get("Дата погашения"))),
+            "isin": info.get("ISIN"),
+            "code": info.get("Код бумаги"),
+            "qualification": info.get("Только для квалов?"),
+            "update_time": datetime.datetime.now().strftime("%d.%m.%Y %H:%M")
+        }
+
+    except Exception as e:
+        print(f"Ошибка при анализе данных из {url}: {e}")
+        return None
+
+
+async def fetch_data(link, session, semaphore):
+    global x
+    x += 1
+    print(x)
+    async with semaphore:
+        try:
+            async with session.get(link) as response:
+                response.raise_for_status()
+                soup = BeautifulSoup(await response.text(), 'lxml')
+                bond_data = parse_bond_data(soup, link)
+                if bond_data:
+                    insert_change_table(bond_data)
+
+        except aiohttp.ClientError as e:
+            print(f"Получена ошибка {link}: {e}")
+
+        except Exception as e:
+            print(f"Получена неожиданная ошибка {link}: {e}")
+
+
+async def main():
+    semaphore = asyncio.Semaphore(5)
+    ua = UserAgent()
+    fake_user = {'user-agent': ua.random}
+    urls = generic_urls()
+    domain = 'https://smart-lab.ru/'
 
     async with aiohttp.ClientSession(headers=fake_user) as session:
         tasks = []
         for url in urls:
-            async with session.get(url) as response:
-                soup = BeautifulSoup(await response.text(), 'lxml')
-                domain = 'https://smart-lab.ru/'
-                links = [domain + url.find('a').get('href') for url in soup.find_all('td', class_='trades-table__name')]
-                tasks.extend([fetch_data(link, session, semaphore) for link in links])
+            try:
+                async with session.get(url) as response:
+                    response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+                    soup = BeautifulSoup(await response.text(), 'lxml')
+                    links = [domain + a.get('href') for a in soup.select('.trades-table__name a')]
+                    tasks.extend([fetch_data(link, session, semaphore) for link in links[1::]])
+            except aiohttp.ClientError as e:
+                print(f"Ошибка при работе с main функцией {url}: {e}")
+            except Exception as e:
+                print(f"Неожиданная ошибка при работе с main функцией {url}: {e}")
         await asyncio.gather(*tasks)
 
 
 if __name__ == '__main__':
-    create_db()
-    create_table_all_bonds()
+    create_tables()
     while True:
         asyncio.run(main())
-
+        sleep(600)
