@@ -16,19 +16,19 @@ def insert_change_table(information_bonds):
             # Обновляем существующую запись
             updated_bond = update_bond(existing_bond, information_bonds)
             session.commit()
-            print(f"Bond with ISIN '{isin}' updated.")
+            print(f"Данные о бумаге '{isin}' обновленны.")
 
         else:
             # Создаем новую запись
             new_bond = insert_bond(information_bonds)
             session.add(new_bond)
             session.commit()
-            print(f"Bond with ISIN '{isin}' added.")
+            print(f"Данные о бумаге '{isin}' добавленны.")
 
     except IntegrityError as e:
-        handle_db_error(session, e, "Integrity error")
+        handle_db_error(session, e, "Ошибка целостности данных")
     except Exception as e:
-        handle_db_error(session, e, "An error occurred")
+        handle_db_error(session, e, "Произошла ошибка")
 
     finally:
         session.close()

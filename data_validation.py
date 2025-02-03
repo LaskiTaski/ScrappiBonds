@@ -1,4 +1,6 @@
 import datetime
+
+
 def safe_float(value):
     try:
         if value:

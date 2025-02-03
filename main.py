@@ -74,14 +74,16 @@ async def main():
         for url in urls:
             try:
                 async with session.get(url) as response:
-                    response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+                    response.raise_for_status()
                     soup = BeautifulSoup(await response.text(), 'lxml')
                     links = [domain + a.get('href') for a in soup.select('.trades-table__name a')]
                     tasks.extend([fetch_data(link, session, semaphore) for link in links[1::]])
+
             except aiohttp.ClientError as e:
                 print(f"Ошибка при работе с main функцией {url}: {e}")
             except Exception as e:
                 print(f"Неожиданная ошибка при работе с main функцией {url}: {e}")
+
         await asyncio.gather(*tasks)
 
 
